@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
   const [contacts, setContacts] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [editingId, setEditingId] = useState(null); // Track which contact is being edited
+  const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     axios
@@ -64,50 +66,104 @@ function App() {
       .catch((error) => console.error("Error updating contact:", error));
   };
 
-  return (
-    <div>
-      <h1>Contact Manager</h1>
+  // Filter contacts based on search input
+  const filteredContacts = contacts.filter(
+    (contact) =>
+      contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.phone.includes(searchTerm)
+  );
 
-      {/* Add or Edit Contact Form */}
-      <form onSubmit={editingId ? updateContact : addContact}>
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="tel"
-          placeholder="Phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          required
-        />
-        <button type="submit">
+  return (
+    <div className="container mt-5">
+      <h1 className="text-center mb-4">📞 Contact Manager</h1>
+
+      {/* Search Input */}
+      <input
+        type="text"
+        className="form-control mb-3"
+        placeholder="Search contacts..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+
+      {/* Add/Edit Contact Form */}
+      <form onSubmit={editingId ? updateContact : addContact} className="mb-4">
+        <div className="input-group mb-2">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+        <div className="input-group mb-2">
+          <input
+            type="email"
+            className="form-control"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="input-group mb-2">
+          <input
+            type="tel"
+            className="form-control"
+            placeholder="Phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary">
           {editingId ? "Update Contact" : "Add Contact"}
         </button>
         {editingId && (
-          <button onClick={() => setEditingId(null)}>Cancel</button>
+          <button
+            type="button"
+            className="btn btn-secondary ms-2"
+            onClick={() => setEditingId(null)}
+          >
+            Cancel
+          </button>
         )}
       </form>
 
       {/* Contact List */}
-      <ul>
-        {contacts.map((contact) => (
-          <li key={contact.id}>
-            {contact.name} - {contact.email} - {contact.phone}
-            <button onClick={() => startEditing(contact)}>Edit</button>
-            <button onClick={() => deleteContact(contact.id)}>Delete</button>
-          </li>
-        ))}
+      <ul className="list-group">
+        {filteredContacts.length === 0 ? (
+          <li className="list-group-item text-center">No contacts found.</li>
+        ) : (
+          filteredContacts.map((contact) => (
+            <li
+              key={contact.id}
+              className="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <span>
+                <strong>{contact.name}</strong> - {contact.email} -{" "}
+                {contact.phone}
+              </span>
+              <div>
+                <button
+                  className="btn btn-warning btn-sm me-2"
+                  onClick={() => startEditing(contact)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => deleteContact(contact.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))
+        )}
       </ul>
     </div>
   );
