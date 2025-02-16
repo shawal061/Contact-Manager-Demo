@@ -6,6 +6,7 @@ function App() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [editingId, setEditingId] = useState(null); // Track which contact is being edited
 
   useEffect(() => {
     axios
@@ -38,12 +39,37 @@ function App() {
       .catch((error) => console.error("Error deleting contact:", error));
   };
 
+  const startEditing = (contact) => {
+    setEditingId(contact.id);
+    setName(contact.name);
+    setEmail(contact.email);
+    setPhone(contact.phone);
+  };
+
+  const updateContact = (e) => {
+    e.preventDefault();
+    const updatedContact = { name, email, phone };
+
+    axios
+      .put(`http://localhost:5000/contacts/${editingId}`, updatedContact)
+      .then((response) => {
+        setContacts(
+          contacts.map((c) => (c.id === editingId ? response.data : c))
+        );
+        setEditingId(null);
+        setName("");
+        setEmail("");
+        setPhone("");
+      })
+      .catch((error) => console.error("Error updating contact:", error));
+  };
+
   return (
     <div>
       <h1>Contact Manager</h1>
 
-      {/* Add Contact Form */}
-      <form onSubmit={addContact}>
+      {/* Add or Edit Contact Form */}
+      <form onSubmit={editingId ? updateContact : addContact}>
         <input
           type="text"
           placeholder="Name"
@@ -65,7 +91,12 @@ function App() {
           onChange={(e) => setPhone(e.target.value)}
           required
         />
-        <button type="submit">Add Contact</button>
+        <button type="submit">
+          {editingId ? "Update Contact" : "Add Contact"}
+        </button>
+        {editingId && (
+          <button onClick={() => setEditingId(null)}>Cancel</button>
+        )}
       </form>
 
       {/* Contact List */}
@@ -73,6 +104,7 @@ function App() {
         {contacts.map((contact) => (
           <li key={contact.id}>
             {contact.name} - {contact.email} - {contact.phone}
+            <button onClick={() => startEditing(contact)}>Edit</button>
             <button onClick={() => deleteContact(contact.id)}>Delete</button>
           </li>
         ))}

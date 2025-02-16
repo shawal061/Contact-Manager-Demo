@@ -72,6 +72,26 @@ app.delete("/contacts/:id", (req, res) => {
     res.json({ message: "Contact deleted" });
 });
 
+// PUT: Replace an entire contact
+app.put("/contacts/:id", (req, res) => {
+    const { id } = req.params;
+    const updatedContact = { id: Number(id), ...req.body };
+
+    contacts = contacts.map((c) => (c.id == id ? updatedContact : c));
+    saveContacts(contacts);
+    res.json(updatedContact);
+});
+
+// PATCH: Update specific fields of a contact
+app.patch("/contacts/:id", (req, res) => {
+    const { id } = req.params;
+    contacts = contacts.map((c) =>
+        c.id == id ? { ...c, ...req.body } : c
+    );
+    saveContacts(contacts);
+    res.json(contacts.find((c) => c.id == id));
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
